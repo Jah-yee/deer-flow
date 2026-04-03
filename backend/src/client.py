@@ -311,7 +311,12 @@ class DeerFlowClient:
 
         seen_ids: set[str] = set()
 
-        for chunk in self._agent.stream(state, config=config, context=context, stream_mode="values"):
+        for chunk in self._agent.stream(state, config=config, context=context, stream_mode=["values", "custom"]):
+            # Handle custom stream events (e.g., subagent task events)
+            if chunk.get("__stream_mode__") == "custom":
+                yield StreamEvent(type="custom", data=chunk)
+                continue
+
             messages = chunk.get("messages", [])
 
             for msg in messages:
